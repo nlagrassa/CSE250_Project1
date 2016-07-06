@@ -42,6 +42,7 @@ void UBCalculator::setLine(std::string str) {
     stack<float> numberStack;                //stack declarations
     stack<Token> opStack;
     stack<Token> assignmentStack;
+    stack<Token> delimStack;
 
 
     //DO ERROR CHECKING/SYNTAX CHECKING HERE BEFORE ANY COMPUTATION IS DONE. EVERYTHING SHOULD BE CORRECT BY THE TIME WE START TO PUSH TO STACKS AND COMPUTER
@@ -99,11 +100,19 @@ void UBCalculator::setLine(std::string str) {
         }
 
         if(tokenIsOpenDelim){
+            opStack.push(thisToken);
+
 
         }
 
         if(tokenIsCloseDelim){
-
+            char thisCloseDelim = thisToken.value.at(0);
+            while(opStack.top().value.at(0)!= delimMatch.at(thisCloseDelim)){
+                determineAndRunCorrectComputation(opStack, numberStack);
+            }
+            if(opStack.top().value.at(0)==delimMatch.at(thisCloseDelim)){
+                opStack.pop();
+            }
         }
 
         if(tokenIsIdent){
