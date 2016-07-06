@@ -21,6 +21,8 @@ const std::string UBCalculator::openDelims = "([{";
 const std::string UBCalculator::closeDelims = ")]}";
 const std::string computationOps = "+-*/";
 
+std::map<string,float> identMap;
+
 
 // Evaluate str 
 void UBCalculator::setLine(std::string str) {
@@ -47,6 +49,22 @@ void UBCalculator::setLine(std::string str) {
 
     //DO ERROR CHECKING/SYNTAX CHECKING HERE BEFORE ANY COMPUTATION IS DONE. EVERYTHING SHOULD BE CORRECT BY THE TIME WE START TO PUSH TO STACKS AND COMPUTER
 
+
+
+    if(tokenVec.size()==1){
+        if(tokenVec[0].type==IDENT){
+            //FIGURE OUT HOW TO SEARCH A MAP
+            if(identMap[tokenVec[0].value]!= identMap.end()){
+                cout << identMap[tokenVec[0].value] << endl;
+            }
+            else{
+                cerr << "Variable undefined" << endl;
+            }
+        }
+        else{
+            cerr << "Syntax error" << endl;
+        }
+    }
 
 
     for (size_t i = 0; i < tokenVec.size(); i++) {    //loop through vector and sort tokens by type
@@ -76,12 +94,19 @@ void UBCalculator::setLine(std::string str) {
         if(tokenIsOperator){
             //If the opStack is empty, push the operator token immediately
             if(opStack.empty()){
-                opStack.push(thisToken);
+
+                if(thisToken.value=="="){
+
+                }
+                else{
+                    opStack.push(thisToken);
+                }
+
             }
             //If the top of the opStack is "=", push the current op on top of it
                 //IS THIS WHAT'S SUPPOSED TO HAPPEN?
             else if (opStack.top().value=="="){
-                opStack.push(thisToken);
+
             }
             else{
                 while(!opStack.empty() && (precedenceMap.at(thisToken.value.at(0)) <= precedenceMap.at(opStack.top().value.at(0)))){
@@ -116,7 +141,22 @@ void UBCalculator::setLine(std::string str) {
         }
 
         if(tokenIsIdent){
+            assignmentStack.push(thisToken);
 
+        }
+
+
+
+        cout << "Item " << i << ":" << endl;
+
+        if(!numberStack.empty()){
+            cout<< "Top of numStack: " << numberStack.top() << endl;
+        }
+        if(!opStack.empty()){
+            cout << "Top of opStack: " << opStack.top().value << endl;
+        }
+        if(!assignmentStack.empty()){
+            cout << "Top of assignmentStack: " << assignmentStack.top().value << endl;
         }
 
 
@@ -126,10 +166,38 @@ void UBCalculator::setLine(std::string str) {
     //Once we reach the end of the input [expression] vector, compute the remainder of the expression, guided by the operators in the opStack
     while(!opStack.empty()){
         determineAndRunCorrectComputation(opStack, numberStack);
+
+
+
+        if(!numberStack.empty()){
+            cout<< "Top of numStack: " << numberStack.top() << endl;
+        }
+        if(!opStack.empty()){
+            cout << "Top of opStack: " << opStack.top().value << endl;
+        }
+        if(!assignmentStack.empty()){
+            cout << "Top of assignmentStack: " << assignmentStack.top().value << endl;
+        }
     }
 
     while(!assignmentStack.empty()){
-        //define this after defining the assignment method
+        string key = assignmentStack.top().value;
+        float value = numberStack.top();
+        identMap[key] = value;
+        assignmentStack.pop();
+
+
+
+
+        if(!numberStack.empty()){
+            cout<< "Top of numStack: " << numberStack.top() << endl;
+        }
+        if(!opStack.empty()){
+            cout << "Top of opStack: " << opStack.top().value << endl;
+        }
+        if(!assignmentStack.empty()){
+            cout << "Top of assignmentStack: " << assignmentStack.top().value << endl;
+        }
 
     }
 
