@@ -6,9 +6,9 @@
       <sourceFolder url="file://$MODULE_DIR$/UBCalculator.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/Lexer.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/UBCalculator.cpp" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/error_handling.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/UBCalcDriver.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/error_handling.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/error_handling.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/CMakeLists.txt" isTestSource="false" />
     </content>
     <orderEntry type="sourceFolder" forTests="false" />
