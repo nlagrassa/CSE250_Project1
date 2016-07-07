@@ -35,6 +35,7 @@ public:
 
 	// a couple of modifiers
 	void setLine(std::string);
+	bool checkForErrors(std::vector<Token> &);
 private:
    static std::map<char, char> createDelimMatch()
 	{
