@@ -139,17 +139,17 @@ void UBCalculator::setLine(std::string str) {
 
 
 
-        cout << "Item " << i << ":" << endl;
-
-        if(!numberStack.empty()){
-            cout<< "Top of numStack: " << numberStack.top() << endl;
-        }
-        if(!opStack.empty()){
-            cout << "Top of opStack: " << opStack.top().value << endl;
-        }
-        if(!assignmentStack.empty()){
-            cout << "Top of assignmentStack: " << assignmentStack.top().value << endl;
-        }
+//        cout << "Item " << i << ":" << endl;
+//
+//        if(!numberStack.empty()){
+//            cout<< "Top of numStack: " << numberStack.top() << endl;
+//        }
+//        if(!opStack.empty()){
+//            cout << "Top of opStack: " << opStack.top().value << endl;
+//        }
+//        if(!assignmentStack.empty()){
+//            cout << "Top of assignmentStack: " << assignmentStack.top().value << endl;
+//        }
 
 
 
@@ -161,15 +161,15 @@ void UBCalculator::setLine(std::string str) {
 
 
 
-        if(!numberStack.empty()){
-            cout<< "Top of numStack: " << numberStack.top() << endl;
-        }
-        if(!opStack.empty()){
-            cout << "Top of opStack: " << opStack.top().value << endl;
-        }
-        if(!assignmentStack.empty()){
-            cout << "Top of assignmentStack: " << assignmentStack.top().value << endl;
-        }
+//        if(!numberStack.empty()){
+//            cout<< "Top of numStack: " << numberStack.top() << endl;
+//        }
+//        if(!opStack.empty()){
+//            cout << "Top of opStack: " << opStack.top().value << endl;
+//        }
+//        if(!assignmentStack.empty()){
+//            cout << "Top of assignmentStack: " << assignmentStack.top().value << endl;
+//        }
             }
 
             while(!assignmentStack.empty()){
@@ -182,15 +182,15 @@ void UBCalculator::setLine(std::string str) {
 
 
 
-        if(!numberStack.empty()){
-            cout<< "Top of numStack: " << numberStack.top() << endl;
-        }
-        if(!opStack.empty()){
-            cout << "Top of opStack: " << opStack.top().value << endl;
-        }
-        if(!assignmentStack.empty()){
-            cout << "Top of assignmentStack: " << assignmentStack.top().value << endl;
-        }
+//        if(!numberStack.empty()){
+//            cout<< "Top of numStack: " << numberStack.top() << endl;
+//        }
+//        if(!opStack.empty()){
+//            cout << "Top of opStack: " << opStack.top().value << endl;
+//        }
+//        if(!assignmentStack.empty()){
+//            cout << "Top of assignmentStack: " << assignmentStack.top().value << endl;
+//        }
 
             }
 
@@ -227,9 +227,10 @@ bool UBCalculator::checkForErrors(vector<Token> &tokenVec){
 
 
     enum tokenOrder {
-        base, ident, identEquals, number, openDelim
+        base, initialIdent, identEquals, number, openDelim, multOrDiv, add, sub
     };
     stack<char> openDelimStack;
+    stack<size_t> removeStack;
 
 
     //Covers cases where the user inputs a single tokenized item
@@ -261,14 +262,14 @@ bool UBCalculator::checkForErrors(vector<Token> &tokenVec){
 
         int state = base;
 
-        for(int i=0; i<tokenVec.size(); i++){
+        for(size_t i=0; i<tokenVec.size(); i++){
             Token thisToken = tokenVec[i];
 
             switch(state){
 
                 case base: {
                     if(thisToken.type==IDENT){
-                        state = ident;
+                        state = initialIdent;
                         break;
 
                     }
@@ -278,7 +279,7 @@ bool UBCalculator::checkForErrors(vector<Token> &tokenVec){
 
                     }
                     else if(thisToken.type==DELIM){
-                        if(openDelims.find(thisToken.value.at(0))!= string::npos){
+                        if(openDelims.find(thisToken.value)!= string::npos){
                             state = openDelim;
                             openDelimStack.push(thisToken.value.at(0));
                             break;
@@ -305,7 +306,7 @@ bool UBCalculator::checkForErrors(vector<Token> &tokenVec){
                 }
 
                 //First token is IDENT (100)
-                case ident:{
+                case initialIdent:{
                     if(thisToken.value == "="){
                         state = identEquals;
                         break;
@@ -332,9 +333,9 @@ bool UBCalculator::checkForErrors(vector<Token> &tokenVec){
                             return false;
                         }
                     }
-                    else if(thisToken.type==OPERATOR){
+                    else if(thisToken.value=="*"||thisToken.value=="/"){
                         if(identMap.find(tokenVec[i-1].value)!=identMap.end()){
-                            state = identOp;
+                            state = multOrDiv;
                             break;
                         }
                         else{
@@ -354,42 +355,54 @@ bool UBCalculator::checkForErrors(vector<Token> &tokenVec){
                 //**case 101 is for IDENT, '='
                 case identEquals:{
                     if(thisToken.type==NUMBER){
-                        state = equalsNumber;
+                        state = number;
                         break;
                     }
                     else if(thisToken.type==IDENT){
-                        state = equalsIdent;
-                        break;
-                    }
-                    else if(thisToken.value=="+"){
-                        state = add;
-                        break;
 
-                    }
-                    else if(thisToken.value == "-"){
-                        state = sub;
-                        break;
-
-                    }
-                    else if(thisToken.type==DELIM){
-                        char thisDelim = thisToken.value.at(0);
-                        if(openDelims.find(thisDelim)!= string::npos){
-                            state = equalOpenDelim;
-                            openDelimStack.push(thisToken.value.at(0));
-                            break;
-
+                        //if we're at the end of the vector
+                        if(i==(tokenVec.size()-1)){
+                            if(identMap.find(thisToken.value)==identMap.end()){
+                                cout << error() << endl;
+                                cout << variableUndefinedError(thisToken.value) << endl;
+                                return false;
+                            }
+                            else{
+                                //state = nestedIdent;
+                                //break;
+                                return true;
+                            }
                         }
                         else{
-                            if(!openDelimStack.empty()&&openDelimStack.top()==delimMatch.at(thisDelim)){
-                                state = validCloseDelim;
+                            if(tokenVec[i+1].value=="="){
+                                state = identEquals;
+                                break;
+                            }
+                            else if(identMap.find(thisToken.value)==identMap.end()){
+                                cout << error() << endl;
+                                cout << variableUndefinedError(thisToken.value) << endl;
+                                return false;
                             }
                             else{
                                 cout << error() << endl;
-                                cout << notWellFormedError() << endl;
+                                cout << syntaxError() << endl;
                                 return false;
                             }
-
                         }
+
+                    }
+                    else if(thisToken.type==DELIM){
+                        if(openDelims.find(thisToken.value)!= string::npos){
+                            state = openDelim;
+                            openDelimStack.push(thisToken.value.at(0));
+                            break;
+                        }
+                        else{
+                            cout << error() << endl;
+                            cout << notWellFormedError() << endl;
+                            return false;
+                        }
+
                     }
                     else{
                         cout << error()<<endl;
@@ -397,6 +410,8 @@ bool UBCalculator::checkForErrors(vector<Token> &tokenVec){
                         return false;
                     }
                 }
+
+
 
 
 
@@ -419,7 +434,7 @@ bool UBCalculator::checkForErrors(vector<Token> &tokenVec){
                         state = sub;
                         break;
                     }
-                    else if(thisToken.type==OPERATOR){
+                    else if(thisToken.value=="*"||thisToken.value=="/"){
                         state = numberOp;
                         break;
                     }
@@ -443,7 +458,7 @@ bool UBCalculator::checkForErrors(vector<Token> &tokenVec){
                     if(thisToken.type==IDENT){
                         //check to see if ident is defined, then do something
                         if(identMap.find(thisToken.value)!=identMap.end()){
-                            state = ident;
+                            state = nestedIdent;
                             break;
                         }
                         else{
@@ -483,11 +498,138 @@ bool UBCalculator::checkForErrors(vector<Token> &tokenVec){
 
 
 
-                //First token is OPERATOR
-                case op: {
+                //previous token was * or /
+                case multOrDiv: {
+                    if(thisToken.type==DELIM){
+                        if(openDelims.find(thisToken.value) != string::npos){
+                            openDelimStack.push(thisToken.value.at(0));
+                            state = openDelim;
+                            break;
+                        }
+                        else{
+                            cout << error() << endl;
+                            cout << notWellFormedError() << endl;
+                            return false;
+                        }
+                    }
+                    else if(thisToken.type==IDENT){
+                        if(identMap.find(thisToken.value) == identMap.end()){
+                            cout << error() << endl;
+                            cout << variableUndefinedError(thisToken.value) << endl;
+                            return false;
+                        }
+                        else{
+                            state = nestedIdent;
+                            break;
+                        }
+                    }
+                    else if(thisToken.type==NUMBER){
+                        state = number;
+                        break;
+                    }
+                    else{
+                        cout << error() << endl;
+                        cout << syntaxError() << endl;
+                        return false;
+                    }
 
                 }
-                //**Case 401 covers IDENT, OP
+
+                case add:{
+                    if(thisToken.value=="+"){
+                        removeStack.push(i-1);
+                        state = add;
+                        break;
+                    }
+                    else if(thisToken.value=="-"){
+                        removeStack.push(i-1);
+                        state = sub;
+                        break;
+                    }
+                    else if(thisToken.type==IDENT){
+                        if(identMap.find(thisToken.value)==identMap.end()){
+                            cout << error() << endl;
+                            cout << variableUndefinedError(thisToken.value) << endl;
+                            return false;
+                        }
+                        else{
+                            state = nestedIdent;
+                            break;
+                        }
+                    }
+                    else if(thisToken.type==DELIM){
+                        if(openDelims.find(thisToken.value)!=string::npos){
+                            openDelimStack.push(thisToken.value.at(0));
+                            state = openDelim;
+                            break;
+                        }
+                        else{
+                            cout << error() << endl;
+                            cout << syntaxError() << endl;
+                            return false;
+                        }
+                    }
+                    else if(thisToken.type==NUMBER){
+                        state = number;
+                        break;
+                    }
+                    else{
+                        cout << error() << endl;
+                        cout << syntaxError() << endl;
+                        return  false;
+                    }
+
+                }
+
+                case sub:{
+                    if(thisToken.value=="+"){
+                        removeStack.push(i-1);
+                        thisToken.value == "-";
+                        state = sub;
+                        break;
+                    }
+                    else if(thisToken.value=="-"){
+                        removeStack.push(i-1);
+                        thisToken.value == "+";
+                        state = add;
+                        break;
+                    }
+                    else if(thisToken.type==IDENT){
+                        if(identMap.find(thisToken.value)==identMap.end()){
+                            cout << error() << endl;
+                            cout << variableUndefinedError(thisToken.value) << endl;
+                            return false;
+                        }
+                        else{
+                            state = nestedIdent;
+                            break;
+                        }
+                    }
+                    else if(thisToken.type==DELIM){
+                        if(openDelims.find(thisToken.value)!=string::npos){
+                            openDelimStack.push(thisToken.value.at(0));
+                            state = openDelim;
+                            break;
+                        }
+                        else{
+                            cout << error() << endl;
+                            cout << syntaxError() << endl;
+                            return false;
+                        }
+                    }
+                    else if(thisToken.type==NUMBER){
+                        state = number;
+                        break;
+                    }
+                    else{
+                        cout << error() << endl;
+                        cout << syntaxError() << endl;
+                        return  false;
+                    }
+
+
+
+                }
 
 
 
